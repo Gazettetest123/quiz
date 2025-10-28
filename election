@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montreal Mayoral Alignment Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<style>
+        /* --- Professional Navy Theme --- */
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+            --color-text: #191919;
+            --color-text-light: #5b5b5b;
+            --color-accent: #004a99; /* Navy Blue Accent */
+            --color-border: #dcdcdc;
+            --color-border-light: #f0f0f0;
+            --color-bg: #ffffff;
+            --color-bg-light: #f4f4f4;
+            --color-error: #d90000;
+            --color-success: #008a1e; /* Green */
+            --color-warning: #ffc107; /* Yellow */
+            --color-info: #0dcaf0;   /* Teal */
+
+            /* Consistent FIXED height for main cards */
+            --card-fixed-height: 680px; /* Changed from min-height */
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            margin: 0;
+            padding: 0; /* CHANGED: Removed bottom padding */
+            background-color: var(--color-bg-light);
+            color: var(--color-text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Fixed Progress Tracker --- */
+        .progress-container-fixed {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: var(--color-border-light);
+            z-index: 20;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            /* UPDATED: Changed from solid color to a linear gradient */
+            background: linear-gradient(to right, #2E86DE, #76D7C4);
+            transition: width 0.4s ease;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            background: var(--color-bg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-content {
+            padding: 3rem 3.5rem 3.5rem 3.5rem; /* Increased padding */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Apply FIXED height to ALL cards */
+        #start-card .card-content,
+        #how-to-play-card .card-content,
+        #question-card-container .card-content,
+        #weighting-card .card-content,
+        #results-card .card-content {
+            height: var(--card-fixed-height); /* Use height instead of min-height */
+        }
+
+        /* Center content on intro cards */
+        #start-card .card-content,
+        #how-to-play-card .card-content {
+             justify-content: center;
+        }
+
+
+        /* Remove side padding on mobile */
+        @media (max-width: 600px) {
+            .card-content {
+                padding: 1.2rem 1.2rem 1.5rem 1.2rem; /* <-- CHANGED: Tighter padding */
+            }
+             .container {
+                 margin-left: 0;
+                 margin-right: 0;
+             }
+            body {
+                 padding: 0; /* CHANGED: Removed bottom padding */
+            }
+             
+            /* --- AGGRESSIVE SHRINK RULES --- */
+            .question-text { 
+                font-size: 1rem; /* <-- CHANGED: Smaller font */
+                line-height: 1.3; /* <-- CHANGED: Tighter line height */
+                margin-bottom: 0.75rem; /* <-- CHANGED: Less margin */
+            }
+
+            .question-header {
+                font-size: 0.8rem; /* <-- CHANGED: Smaller font */
+                margin-bottom: 0.4rem; /* <-- CHANGED: Less margin */
+            }
+            
+            .radio-group {
+                 margin-bottom: 0.75rem; /* <-- CHANGED: Less margin */
+            }
+
+            .accordion-container {
+                margin-top: 0.75rem; /* <-- CHANGED: Less margin */
+                padding-top: 0.75rem; /* <-- CHANGED: Less padding */
+            }
+            
+            .navigation-buttons {
+                margin-top: 1rem; /* <-- CHANGED: Less margin */
+                padding-top: 1rem; /* <-- CHANGED: Less padding */
+            }
+        }
+
+
+        /* Card Visibility */
+        .quiz-card { display: none; }
+        .quiz-card.active { display: block; }
+
+        /* --- Start Card --- */
+        .start-card-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .icon-stack {
+            position: relative;
+            width: 100px;
+            height: 80px;
+            margin: 1rem auto 1.5rem auto; /* CHANGED: Reduced margin */
+        }
+        .stack-icon {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-text);
+            background: var(--color-bg-light);
+            border: 2px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stack-icon.icon-answer {
+            transform: rotate(-15deg);
+            background-color: var(--color-success);
+            color: white;
+            border-color: var(--color-success);
+            top: 0;
+            left: 25px;
+            z-index: 3;
+        }
+        .stack-icon.icon-weight {
+            transform: rotate(10deg);
+            background-color: var(--color-info);
+            color: white;
+            border-color: var(--color-info);
+            top: 20px;
+            left: 5px;
+            z-index: 2;
+        }
+        .stack-icon.icon-match {
+            transform: rotate(-5deg);
+            background-color: var(--color-warning);
+             color: white;
+            border-color: var(--color-warning);
+            top: 20px;
+            left: 45px;
+            z-index: 1;
+        }
+
+
+        #start-card h1 { /* Mayoral Matchmaker */
+            font-weight: 800;
+            color: var(--color-text);
+            margin: 0;
+            font-size: 2.8rem; /* CHANGED: Reduced font size */
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        #start-card .tagline {
+            font-size: 1rem; /* CHANGED: Reduced font size */
+            font-weight: 500;
+            color: var(--color-text-light);
+            margin: 1rem auto 2rem auto; /* CHANGED: Reduced margin */
+            text-align: center;
+            position: relative;
+            display: inline-block;
+            padding-right: 50px; /* More space */
+        }
+        /* 5 Minute Badge */
+        .time-badge {
+            display: inline-block;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--color-border);
+            white-space: nowrap;
+            position: absolute;
+            top: -0.8rem; /* Higher */
+            right: 0;
+            transform: rotate(10deg);
+        }
+         @media (max-width: 600px) {
+               #start-card h1 {
+                   font-size: 2.5rem;
+               }
+              #start-card .tagline {
+                 font-size: 1rem;
+                 display: inline-block; /* CHANGED: Fixed typo */
+                 padding-right: 50px; /* CHANGED: Added space for badge */
+                 padding-left:10px;
+                 margin-bottom: 1rem;
+              }
+
+        }
+
+
+        #start-btn {
+            background-color: var(--color-text);
+            border-color: var(--color-text);
+            color: var(--color-bg);
+            font-size: 1.1rem;
+            font-weight: 700;
+            width: 100%;
+            max-width: 300px;
+            display: block;
+            margin: 1rem auto;
+        }
+         #start-btn:hover {
+            background-color: #333;
+            border-color: #333;
+         }
+
+        .quiz-author {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            text-align: center;
+            margin-top: auto;
+            padding-top: 2rem;
+        }
+
+        /* --- How To Play Card --- */
+        #how-to-play-card h2 {
+            font-weight: 800;
+            font-size: 2.2rem; /* CHANGED: Reduced font size */
+            line-height: 1.2;
+            color: var(--color-text);
+            text-align: center;
+            margin-bottom: 2rem; /* CHANGED: Reduced margin */
+        }
+        .how-to-list {
+            padding-left: 0;
+            list-style: none;
+            counter-reset: how-to-counter;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .how-to-list li {
+            counter-increment: how-to-counter;
+            font-size: 1rem; /* CHANGED: Reduced font size */
+            color: var(--color-text-secondary);
+            margin-bottom: 1.5rem; /* CHANGED: Reduced margin */
+            line-height: 1.6;
+            position: relative;
+            padding-left: 50px;
+        }
+        .how-to-list li::before {
+            content: counter(how-to-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--color-accent);
+            background: var(--color-bg-light);
+            border: 2px solid var(--color-border);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            text-align: center;
+            line-height: 33px;
+        }
+        .how-to-list strong { color: var(--color-text); }
+
+        #got-it-btn {
+            width: 100%;
+            max-width: 300px;
+            display: block;
+            margin: auto auto 2rem auto;
+        }
+
+        #how-to-play-card .privacy-notice {
+             display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-top: auto;
+            padding: 1rem;
+            background-color: var(--color-bg-light);
+            border-radius: 4px;
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+        }
+        #how-to-play-card .privacy-notice svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+            fill: var(--color-text-light);
+        }
+        #how-to-play-card .privacy-notice strong {
+            color: var(--color-text);
+        }
+
+
+        /* --- Question Card Styling --- */
+        .question-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-accent);
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .question-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+            line-height: 1.4;
+            color: var(--color-text);
+            margin-bottom: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 600px) {
+            /* This rule is now earlier in the media query */
+            /* .question-text { font-size: 1.3rem; } */
+        }
+
+        /* --- Segmented Control Radio Buttons --- */
+        .radio-group {
+            display: flex;
+            border: 2px solid var(--color-border);
+            border-radius: 6px;
+            overflow: hidden;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .radio-group input[type="radio"] { display: none; }
+        .radio-group label {
+            flex: 1;
+            text-align: center;
+            padding: 0.8rem 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--color-text-light);
+            background: var(--color-bg);
+            border-left: 1px solid var(--color-border);
+            transition: all 0.2s ease-in-out;
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+        .radio-group label:first-of-type { border-left: none; }
+
+        /* Mobile stacked buttons */
+        @media (max-width: 600px) {
+            .radio-group {
+                flex-direction: column;
+                border: none;
+                border-radius: 0;
+            }
+            .radio-group label {
+                width: 100%;
+                border: 2px solid var(--color-border);
+                border-radius: 6px;
+                margin-bottom: 0.5rem;
+                border-left: 2px solid var(--color-border);
+                font-size: 0.8rem; /* <-- CHANGED: Even smaller */
+                padding: 0.5rem 0.4rem; /* <-- CHANGED: Smaller padding */
+            }
+            .radio-group label:first-of-type { border-left: 2px solid var(--color-border); }
+
+            .radio-group input[type="radio"]:checked + label {
+                border-color: var(--color-accent);
+                background: var(--color-accent);
+                color: var(--color-bg);
+            }
+        }
+
+        /* Desktop hover/checked states */
+        @media (min-width: 601px) {
+            .radio-group label:hover {
+                background: var(--color-bg-light);
+                color: var(--color-text);
+            }
+            .radio-group input[type="radio"]:checked + label {
+                background-color: var(--color-accent);
+                color: var(--color-bg);
+                border-color: var(--color-accent);
+                font-weight: 700;
+            }
+        }
+
+        /* --- Accordion --- */
+        .accordion-container {
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--color-border-light);
+            padding-top: 1rem;
+             /* This setup makes the accordion area scrollable within the fixed-height card */
+             flex-grow: 1;
+             min-height: 0; /* Needed for flex-grow */
+             overflow-y: auto; /* Scroll if content exceeds space */
+             padding-right: 10px; /* Space for scrollbar */
+             margin-right: -10px;
+             scrollbar-width: thin;
+             scrollbar-color: var(--color-border) transparent;
+        }
+         .accordion-container::-webkit-scrollbar { width: 8px; }
+         .accordion-container::-webkit-scrollbar-track { background: transparent; }
+         .accordion-container::-webkit-scrollbar-thumb {
+            background-color: var(--color-border);
+            border-radius: 4px;
+         }
+
+        details { margin-bottom: 0.5rem; }
+
+        summary {
+            font-weight: 700;
+            color: var(--color-text);
+            cursor: pointer;
+            list-style: none; /* Remove default marker */
+            position: relative;
+            padding-left: 1.75rem;
+            font-size: 0.9rem; /* Smaller summary */
+        }
+
+        summary::before {
+            content: '+';
+            font-weight: 700;
+            position: absolute;
+            left: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-accent);
+            font-size: 1.1rem; /* Smaller icon */
+        }
+
+        details[open] summary::before { content: '–'; }
+
+        .accordion-content {
+            padding: 0.5rem 0 0.5rem 1.75rem; /* Reduced padding */
+            color: var(--color-text-secondary);
+            font-size: 0.85rem; /* Smaller content text */
+            line-height: 1.5; /* Tighter line height */
+        }
+
+        /* --- Navigation --- */
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem; /* Ensure space above nav */
+            border-top: 1px solid var(--color-border-light);
+            padding-top: 2rem;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .nav-btn, #start-btn, #submit-quiz-btn, #got-it-btn {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--color-accent);
+            border-radius: 4px;
+            background: var(--color-accent);
+            color: var(--color-bg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        /* Separate restart btn from this rule */
+        .nav-btn:hover, #start-btn:hover, #submit-quiz-btn:hover, #got-it-btn:hover {
+            background: #003366;
+            border-color: #003366;
+        }
+
+        .nav-btn.secondary {
+            background: var(--color-bg);
+            color: var(--color-accent);
+        }
+
+        .nav-btn.secondary:hover {
+            background: #f4f4f4;
+            border-color: var(--color-accent);
+        }
+
+        #start-btn:hover {
+            background-color: #333;
+            border-color: #333;
+        }
+        #start-btn {
+            background-color: var(--color-text);
+            border-color: var(--color-text);
+        }
+
+
+        .nav-btn:disabled, #submit-quiz-btn:disabled, #got-it-btn:disabled {
+            background: #ccc;
+            border-color: #ccc;
+            color: #888;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .nav-btn.secondary:disabled {
+            background: var(--color-bg);
+            border-color: #ccc;
+            color: #ccc;
+            opacity: 0.7;
+        }
+
+        /* --- Weighting Card --- */
+        #weighting-card .card-content {
+            padding-top: 2.5rem;
+            /* Height is set in the common rule above */
+        }
+
+        #weighting-card h2 {
+            font-weight: 800;
+            font-size: 2rem;
+            line-height: 1.2;
+            color: var(--color-text);
+            text-align: center;
+            margin-bottom: 0.5rem; /* Reduced margin */
+            flex-shrink: 0;
+        }
+        #weighting-card .card-subtitle {
+            font-size: 1rem;
+            color: var(--color-text-light);
+            text-align: center;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .points-tracker {
+            text-align: center;
+            /* Removed border-bottom and padding-bottom (Request 2) */
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Removed .points-tracker-label styles (Request 2) */
+
+        #total-points-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-success);
+            transition: color 0.3s ease;
+        }
+        #total-points-display.error { color: var(--color-error); }
+
+        #points-helper {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            margin-top: 0.25rem;
+            line-height: 1.5;
+        }
+
+        /* --- Weighting Swiper (Request 3) --- */
+        .weighting-swiper-container {
+            flex-grow: 1; /* Takes up remaining space */
+            min-height: 0; /* Critical for flex */
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            overflow: hidden; /* This hides the other slides */
+            position: relative;
+        }
+
+        /* This is the track that moves */
+        #weighting-list {
+            display: flex;
+            transition: transform 0.4s ease;
+            height: 100%;
+        }
+
+        .weighting-slide {
+            width: 100%;
+            flex-shrink: 0;
+            overflow-y: auto; /* Allow individual slides to scroll if content overflows */
+            height: 100%;
+            /* Scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-border) transparent;
+        }
+        .weighting-slide::-webkit-scrollbar { width: 8px; }
+        .weighting-slide::-webkit-scrollbar-track { background: transparent; }
+        .weighting-slide::-webkit-scrollbar-thumb {
+            background-color: var(--color-border);
+            border-radius: 4px;
+        }
+
+        .weighting-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+        /* Remove border from last item *within a slide* */
+        .weighting-slide .weighting-list-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Swiper Navigation */
+        .weighting-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+            flex-shrink: 0;
+        }
+        #weighting-page-indicator {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--color-text-light);
+        }
+        /* --- End Swiper Styles --- */
+
+        .weighting-q-text {
+            font-weight: 500;
+            padding-right: 1rem;
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        .weighting-q-text strong {
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        /* Point Allocator (+/- buttons) */
+        .point-allocator {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .point-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-accent);
+            background: var(--color-bg);
+            border: 2px solid var(--color-border);
+            border-radius: 50%;
+            cursor: pointer;
+            line-height: 0;
+            padding: 0;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .point-btn:hover {
+            background: var(--color-accent);
+            color: var(--color-bg);
+            border-color: var(--color-accent);
+        }
+
+        .point-input {
+            width: 45px;
+            height: 40px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+            border: none;
+            background: transparent;
+            color: var(--color-text);
+            margin: 0 0.2rem;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            pointer-events: none; /* Make readonly visually */
+        }
+
+        #submit-quiz-btn {
+            width: 100%;
+            margin-top: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        #error-message {
+            color: var(--color-error);
+            text-align: center;
+            font-weight: 700;
+            margin-top: 1rem;
+            font-size: 1rem;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        /* --- Results Card --- */
+        #results-card .card-content {
+             justify-content: center;
+             /* Height is set in the common rule above */
+        }
+
+        #results-card h2 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            line-height: 1.2;
+            color: var(--color-text); /* Default text color */
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        /* --- NEW: Smaller Result Lines --- */
+        .result-bar { margin-bottom: 1rem; } /* Was 1.5rem */
+        .result-bar-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .candidate-name { 
+            font-size: 1rem; /* Was 1.1rem */
+            color: var(--color-text); 
+        }
+        .result-percent { 
+            font-size: 1rem; /* Was 1.1rem */
+            color: var(--color-text-secondary); 
+        }
+        .bar-wrapper {
+            height: 24px; /* Was 28px */
+            background: #f0f0f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: var(--color-text-light); /* Default, will be overridden */
+            width: 0%; /* Set by JS */
+            transition: width 1.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        /* --- CHANGED: Top Match now only applies font-weight --- */
+        .result-bar.top-match .candidate-name,
+        .result-bar.top-match .result-percent {
+            font-weight: 700;
+        }
+        
+        /* --- CHANGED: Restart Button Style --- */
+        #restart-btn {
+            /* Remove all button styles */
+            background: none;
+            border: none;
+            color: var(--color-text-light);
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+
+            /* Keep layout styles */
+            width: 100%;
+            max-width: 300px; 
+            margin: 2rem auto 0 auto; /* Add more margin-top, remove bottom */
+            display: block;
+            padding-top: 1rem;
+            text-align: center;
+        }
+        #restart-btn:hover {
+            color: var(--color-text);
+            text-decoration: underline;
+            background: none; /* Ensure no hover background */
+            border: none; /* Ensure no hover border */
+        }
+
+         @media (max-width: 600px) {
+               #restart-btn {
+                   margin-top: 1.5rem;
+               }
+         }
+    </style>
+</head>
+<body>
+
+    <div class="progress-container-fixed">
+        <div id="progress-bar"></div>
+    </div>
+
+    <div class="container">
+
+        <div id="start-card" class="quiz-card active">
+            <div class="card-content">
+                <div class="start-card-header">
+                    <div class="icon-stack">
+                        <span class="stack-icon icon-answer">☑</span>
+                        <span class="stack-icon icon-weight">⚖</span>
+                        <span class="stack-icon icon-match">🎯</span>
+                    </div>
+                    <h1>Montreal Mayoral Matchmaker</h1>
+                </div>
+
+                <p class="tagline">
+                    See which party you are most aligned to
+                    <span class="time-badge">~ 5 min</span>
+                </p>
+
+                <button id="start-btn" class="nav-btn">Start Quiz</button>
+
+                <div class="quiz-author">Quiz by The Gazette.</div>
+            </div>
+        </div>
+
+        <div id="how-to-play-card" class="quiz-card">
+            <div class="card-content">
+                <h2>How it works</h2>
+
+                <ol class="how-to-list">
+                    <li>
+                        <strong>Answer questions:</strong>Select level of agreement for each of the 15 statements..
+                    </li>
+                    <li>
+                        <strong>Weight importance:</strong> Decide which questions matter most to you.
+                    </li>
+                    <li>
+                        <strong>Find your match:</strong> See which mayoral party aligns with your views.
+                    </li>
+                </ol>
+
+                <button id="got-it-btn" class="nav-btn">Got it</button>
+
+                <div class="privacy-notice">
+                    <span>No data is collected or stored.</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="question-card-container"></div>
+
+        <div id="weighting-card" class="quiz-card">
+            <div class="card-content">
+                <h2>How important is each question?</h2>
+                <p class="card-subtitle">Give more points to the questions you care about.</p>
+
+                <div class="points-tracker">
+                    <span id="total-points-display">60 / 60</span>
+                    <div id="points-helper">All questions start at 4 points. You must use <strong>exactly 60</strong>.</div>
+                </div>
+
+                <div class="weighting-swiper-container">
+                    <div id="weighting-list">
+                        </div>
+                </div>
+
+                <div class="weighting-nav">
+                    <button type="button" id="weighting-prev" class="nav-btn secondary" disabled>&larr; Previous</button>
+                    <span id="weighting-page-indicator">1 / 5</span> <button type="button" id="weighting-next" class="nav-btn">Next &rarr;</button>
+                </div>
+                <button id="submit-quiz-btn" class="nav-btn">Calculate</button>
+                <p id="error-message"></p>
+            </div>
+        </div>
+
+        <div id="results-card" class="quiz-card">
+            <div class="card-content">
+                <h2 id="results-title">Your 2025 Montreal Match</h2>
+                <div id="results-output">
+                    </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Data Setup ---
+
+        // Candidate data: Key is the candidate, Value is an array of their scores for Q1 to Q15
+        // Scores based on the grid: SD=-2, D=-1, N=0, A=1, SA=2
+        const CANDIDATE_SCORES = {
+            'Luc Rabouin (Projet Montréal)':              [2, 2, 0, 1, -1, 1, 0, 0, 1, 1, -2, 1, -1, -1, 1],
+            'Soraya Martinez Ferrada (Ensemble Montréal)': [-1, 0, -1, 1, 2, 1, -1, 2, 0, 0, -1, -2, 1, 2, -1],
+            'Craig Sauvé (Transition Montréal)':          [1, 2, 2, 0, -1, 2, 2, -1, 2, 2, -2, 2, -1, -1, 2],
+            'Gilbert Thibodeau (Action Montréal)':         [-2, -1, -2, 2, 1, -1, -1, 2, -1, -1, 2, -2, 2, 1, -2],
+            'Jean-François Kacou (Futur Montréal)':       [-1, -1, -1, 0, 1, -1, -1, 2, 0, 0, 0, -1, 0, 0, -1]
+        };
+
+        // --- NEW: Party Colors ---
+        const PARTY_COLORS = {
+            'Projet Montréal': '#4ea33e',
+            'Transition Montréal': '#ff4f19',
+            'Action Montréal': '#2157aa',
+            'Ensemble Montréal': '#32004a',
+            'Futur Montréal': '#3399cc'
+        };
+
+        // Quiz Questions: 15 total
+        const QUESTIONS = [
+            {
+                id: 1,
+                text: "Should Montreal continue expanding its <strong>bike lane network</strong>, even if it means reducing parking and road space for cars?",
+                details: [
+                    { summary: "What’s the debate?", content: "Montreal’s bike network has expanded rapidly in recent years, especially in the Plateau, often reducing parking and sparking tension between cyclists and drivers." }
+                ]
+            },
+            {
+                id: 2,
+                text: "Montreal should offer <strong>discounted transit passes to low-income residents</strong>, instead of freezing prices for everyone.",
+                details: [
+                    { summary: "What’s the trade-off?", content: "Targeted discounts help low-income riders but may put upward pressure on the city’s budget or lead to higher fares for others." }
+                ]
+            },
+            {
+                id: 3,
+                text: "Montreal should introduce a <strong>kilometre-based tax on vehicles</strong> to fund climate initiatives.",
+                details: [
+                    { summary: "What is a vehicle-kilometre tax?", content: "A system where drivers pay based on how far they travel, replacing or supplementing fuel taxes." }
+                ]
+            },
+            {
+                id: 4,
+                text: "Montreal should restore <strong>weekly garbage pickup</strong> across all boroughs during the summer months.",
+                details: [
+                    { summary: "Why it matters", content: "Some boroughs cut garbage pickups to promote better waste management, but residents complain of overflowing bins, bad smells, and rats in summer." }
+                ]
+            },
+            {
+                id: 5,
+                text: "Montreal should <strong>scrap the 20-20-20 housing bylaw</strong> and replace it with financial incentives for developers.",
+                details: [
+                    { summary: "What is the 20-20-20 bylaw?", content: "It requires new developments to include 20% affordable units, 20% social housing, and 20% family-sized homes. It's a rule developers say makes projects too costly." }
+                ]
+            },
+            {
+                id: 6,
+                text: "Montreal should <strong>ban short-term rentals</strong> like Airbnb in most residential neighbourhoods.",
+                details: [
+                    { summary: "Why are people against Airbnb?", content: "Short-term rentals can reduce available housing and raise rents, but supporters say they help residents earn extra income." }
+                ]
+            },
+            {
+                id: 7,
+                text: "Montreal should <strong>end the forced eviction</strong> of homeless encampments.",
+                details: [
+                    { summary: "What’s happening?", content: "Homeless encampments — tent communities that have appeared more often as homelessness rises — are criticized as unsafe and unsanitary but defended as a last resort for shelter." }
+                ]
+            },
+            {
+                id: 8,
+                text: "Montreal should <strong>increase the number of police patrols</strong> in high-risk neighbourhoods.",
+                details: [
+                    { summary: "What’s the goal?", content: "More police patrols could deter violence and reassure residents, but critics warn they risk over-policing marginalized communities." }
+                ]
+            },
+            {
+                id: 9,
+                text: "Montreal should <strong>limit random police stops</strong> and street checks to urgent security issues only.",
+                details: [
+                    { summary: "What are street checks?", content: "Random police stops not tied to an offence — a practice Quebec’s ombudsman and rights groups have condemned as discriminatory." }
+                ]
+            },
+            {
+                id: 10,
+                text: "Montreal should <strong>protect its nightlife and cultural venues</strong> from noise complaints, even if it means limiting city interventions.",
+                details: [
+                    { summary: "What’s at stake?", content: "Noise complaints have led to fines and closures for bars and venues, while residents say nightlife sometimes disrupts neighbourhood peace." }
+                ]
+            },
+            {
+                id: 11,
+                text: "Montreal should require a <strong>permit for any religious gathering</strong> in a public space.",
+                details: [
+                    { summary: "What’s the concern?", content: "Supporters say police permits help manage large religious events; opponents see them as a violation of freedom of religion and equality rights." }
+                ]
+            },
+            {
+                id: 12,
+                text: "Montreal should openly support an <strong>arms embargo on Israel</strong>.",
+                details: [
+                    { summary: "Context", content: "Pro-Palestinian activists want Montreal to take a stronger stance in response to Israel’s military actions in Gaza." }
+                ]
+            },
+            {
+                id: 13,
+                text: "Montreal’s city council is too large and should be <strong>simplified to make decisions faster</strong>.",
+                details: [
+                    { summary: "What’s the structure?", content: "With 103 elected officials across boroughs, Montreal has one of the largest municipal councils in Canada and some say it slows decision-making." }
+                ]
+            },
+            {
+                id: 14,
+                text: "Montreal should <strong>freeze city hiring</strong> for non-essential administrative positions.",
+                details: [
+                    { summary: "Why it matters", content: "A hiring freeze could save taxpayers money but risk delaying permits, inspections, and urban planning." }
+                ]
+            },
+            {
+                id: 15,
+                text: "Montreal has improved... and should <strong>build on that progress</strong>, but push harder on... housing.",
+                details: [
+                    { summary: "The big picture", content: "This gauges whether Montrealers want continuity under Projet Montréal, an even stronger push in the same progressive direction, or a fresh political course." }
+                ]
+            }
+        ];
+
+        // --- App State ---
+        // 0 = Start, 1 = How to Play, 2-16 = Questions, 17 = Weighting, 18 = Results
+        let currentStep = 0;
+        const totalQuizQuestions = QUESTIONS.length;
+        // Total steps now includes Start, How-to-Play, Questions, Weighting, Results
+        const totalSteps = 2 + totalQuizQuestions + 2;
+        let userAgreementAnswers = new Array(QUESTIONS.length).fill(null); // Stores -2 to 2
+
+        // State for weighting swiper
+        let currentWeightingPage = 0;
+        const questionsPerSlide = 3; // CHANGED to 3
+        let totalWeightingPages = Math.ceil(QUESTIONS.length / questionsPerSlide);
+
+        // --- Helper Functions ---
+
+        /**
+         * Calculates the agreement score for one question.
+         * The formula is: (5 - |User Score - Candidate Score|) * Importance Multiplier
+         */
+        function calculateAgreement(userScore, candidateScore, points) {
+            const scoreDifference = Math.abs(userScore - candidateScore);
+            const rawAgreement = 5 - scoreDifference;
+            return rawAgreement * points;
+        }
+
+        /**
+         * Updates the total points display and enables/disables the calculate button.
+         */
+        function updatePointTotal() {
+            const pointInputs = document.querySelectorAll('.point-input');
+            let totalPoints = 0;
+            pointInputs.forEach(input => {
+                totalPoints += parseInt(input.value) || 0;
+            });
+
+            const display = document.getElementById('total-points-display');
+            const helper = document.getElementById('points-helper');
+            const calculateBtn = document.getElementById('submit-quiz-btn');
+
+            display.textContent = `${totalPoints} / 60`; 
+
+            if (totalPoints === 60) { 
+                display.classList.remove('error');
+                helper.textContent = "Perfect! You're ready to calculate!"; // CHANGED
+                helper.style.color = 'var(--color-success)';
+                calculateBtn.disabled = false;
+            } else {
+                display.classList.add('error');
+                helper.textContent = `Whoops! Your total must be exactly 60. You are ${Math.abs(60 - totalPoints)} points ${totalPoints > 60 ? 'over' : 'under'}.`; 
+                helper.style.color = 'var(--color-error)';
+                calculateBtn.disabled = true;
+            }
+        }
+
+        /**
+         * Shows a specific card by its ID and hides all others
+         */
+         function showCard(cardId) {
+             document.querySelectorAll('.quiz-card').forEach(card => {
+                 card.classList.remove('active');
+             });
+             document.getElementById(cardId).classList.add('active');
+             window.scrollTo(0, 0); // Scroll to top on every card change
+         }
+
+        /**
+         * Updates the fixed progress bar
+         */
+         function updateProgressBar(step, total = totalSteps) {
+             const progressBar = document.getElementById('progress-bar');
+             if (progressBar) {
+                 const effectiveStep = Math.max(0, step);
+                 const percentage = (effectiveStep / (total -1)) * 100; // -1 because results is the end
+                 progressBar.style.width = `${percentage}%`;
+             }
+         }
+
+        // --- Main Logic ---
+
+        /**
+         * Renders all 15 question cards into the DOM (hidden)
+         */
+        function renderQuestionCards() {
+            const container = document.getElementById('question-card-container');
+            let html = '';
+
+            QUESTIONS.forEach((q, index) => {
+                // Build Accordion HTML
+                let detailsHtml = '';
+                if (q.details && q.details.length > 0) {
+                    detailsHtml += '<div class="accordion-container">';
+                    q.details.forEach(detail => {
+                        detailsHtml += `
+                            <details>
+                                <summary>${detail.summary}</summary>
+                                <div class="accordion-content">
+                                    <p style="margin-top: 0.25rem; margin-bottom: 1rem;">${detail.content}</p>
+                                </div>
+                            </details>
+                        `;
+                    });
+                    detailsHtml += '</div>';
+                } else {
+                    // Add a non-breaking space to maintain layout if no accordion
+                    detailsHtml = '<div class="accordion-container" style="border-top: none;">&nbsp;</div>';
+                }
+
+                // Build Full Question Card
+                html += `
+                    <div class="quiz-card" id="question-card-${index}">
+                        <div class="card-content">
+                            <div class="question-header">Question ${index + 1} of ${QUESTIONS.length}</div>
+                            <div class="question-text">${q.text.replace(/<strong>/g, '<strong>')}</div>
+
+                            <div class="radio-group" id="radio-group-${index}">
+                                <input type="radio" id="q${q.id}-sd" name="agreement-${q.id}" value="-2" required><label class="radio-label" for="q${q.id}-sd">Strongly Disagree</label>
+                                <input type="radio" id="q${q.id}-d" name="agreement-${q.id}" value="-1"><label class="radio-label" for="q${q.id}-d">Disagree</label>
+                                <input type="radio" id="q${q.id}-n" name="agreement-${q.id}" value="0"><label class="radio-label" for="q${q.id}-n">Neutral</label>
+                                <input type="radio" id="q${q.id}-a" name="agreement-${q.id}" value="1"><label class="radio-label" for="q${q.id}-a">Agree</label>
+                                <input type="radio" id="q${q.id}-sa" name="agreement-${q.id}" value="2"><label class="radio-label" for="q${q.id}-sa">Strongly Agree</label>
+                            </div>
+
+                            ${detailsHtml}
+                            <div class="navigation-buttons">
+                                <button type="button" class="nav-btn secondary" id="prev-btn-${index}">Previous</button>
+                                <button type="button" class="nav-btn" id="next-btn-${index}" disabled>Next</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        /**
+         * Renders the weighting card slides
+         */
+        function renderWeightingCard() {
+            const listContainer = document.getElementById('weighting-list');
+            listContainer.innerHTML = ''; // Clear existing
+
+            // Create slides
+            for (let i = 0; i < totalWeightingPages; i++) {
+                const slide = document.createElement('div');
+                slide.className = 'weighting-slide';
+
+                const start = i * questionsPerSlide;
+                const end = start + questionsPerSlide;
+                let slideHtml = '';
+
+                QUESTIONS.slice(start, end).forEach((q, index) => {
+                    const questionIndex = start + index;
+                    const questionShortText = q.text.split('<strong>')[1] || q.text.split('**')[1] || q.text.split('<')[0];
+                    slideHtml += `
+                        <div class="weighting-list-item">
+                            <label for="points-${questionIndex}" class="weighting-q-text">
+                                ${q.id}. <strong>${questionShortText}</strong>
+                            </label>
+                            <div class="point-allocator">
+                                <button type="button" class="point-btn minus" data-index="${questionIndex}" aria-label="Decrease points">-</button>
+                                <input type="text" class="point-input" id="points-${questionIndex}" value="4" readonly> <button type="button" class="point-btn plus" data-index="${questionIndex}" aria-label="Increase points">+</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                slide.innerHTML = slideHtml;
+                listContainer.appendChild(slide);
+            }
+            document.getElementById('weighting-page-indicator').textContent = `1 / ${totalWeightingPages}`;
+        }
+
+        /**
+         * Handles changing the weighting slide
+         */
+        function updateWeightingSlide() {
+            const track = document.getElementById('weighting-list');
+            const prevBtn = document.getElementById('weighting-prev');
+            const nextBtn = document.getElementById('weighting-next');
+            const indicator = document.getElementById('weighting-page-indicator');
+
+            track.style.transform = `translateX(-${currentWeightingPage * 100}%)`;
+            indicator.textContent = `${currentWeightingPage + 1} / ${totalWeightingPages}`;
+
+            prevBtn.disabled = (currentWeightingPage === 0);
+            nextBtn.disabled = (currentWeightegingPage === totalWeightingPages - 1);
+        }
+
+        /**
+         * Attaches all the necessary event listeners after rendering
+         */
+        function attachListeners() {
+            // Start button
+            document.getElementById('start-btn').addEventListener('click', () => {
+                currentStep = 1;
+                showCard('how-to-play-card');
+                updateProgressBar(currentStep);
+            });
+
+            // "Got it" button for How to Play card
+            document.getElementById('got-it-btn').addEventListener('click', () => {
+                currentStep = 2;
+                showCard('question-card-0');
+                updateProgressBar(currentStep);
+                document.getElementById('prev-btn-0').style.visibility = 'hidden';
+            });
+
+            // Next/Prev buttons
+            QUESTIONS.forEach((q, index) => {
+                const nextBtn = document.getElementById(`next-btn-${index}`);
+                const prevBtn = document.getElementById(`prev-btn-${index}`);
+
+                if (index === 0) {
+                    prevBtn.style.visibility = 'hidden';
+                }
+
+                document.getElementById(`radio-group-${index}`).addEventListener('change', (e) => {
+                    nextBtn.disabled = false;
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    const selected = document.querySelector(`input[name="agreement-${q.id}"]:checked`);
+                    if (!selected) { return; }
+
+                    userAgreementAnswers[index] = parseInt(selected.value);
+
+                    currentStep++;
+                    if (currentStep <= totalQuizQuestions + 1) {
+                        const nextQuestionIndex = currentStep - 2;
+                        showCard(`question-card-${nextQuestionIndex}`);
+                        updateProgressBar(currentStep);
+
+                        document.getElementById(`prev-btn-${nextQuestionIndex}`).style.visibility = 'visible';
+
+                        if (userAgreementAnswers[nextQuestionIndex] !== null) {
+                            const val = userAgreementAnswers[nextQuestionIndex];
+                            document.querySelector(`#question-card-${nextQuestionIndex} input[value="${val}"]`).checked = true;
+                            document.getElementById(`next-btn-${nextQuestionIndex}`).disabled = false;
+                        } else {
+                             document.getElementById(`next-btn-${nextQuestionIndex}`).disabled = true;
+                        }
+
+                    } else {
+                        showCard('weighting-card');
+                        updateProgressBar(currentStep);
+                        updatePointTotal();
+                    }
+                });
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', () => {
+                        currentStep--;
+                        if (currentStep <= 1) {
+                            showCard('how-to-play-card');
+                            updateProgressBar(currentStep);
+                        } else {
+                            const prevQuestionIndex = currentStep - 2;
+                            showCard(`question-card-${prevQuestionIndex}`);
+                            updateProgressBar(currentStep);
+
+                            const val = userAgreementAnswers[prevQuestionIndex];
+                            if (val !== null) {
+                                document.querySelector(`#question-card-${prevQuestionIndex} input[value="${val}"]`).checked = true;
+                                document.getElementById(`next-btn-${prevQuestionIndex}`).disabled = false;
+                            }
+                            if (prevQuestionIndex === 0) {
+                                document.getElementById(`prev-btn-0`).style.visibility = 'hidden';
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Weighting card +/- button listener
+            document.getElementById('weighting-list').addEventListener('click', (event) => {
+                const target = event.target;
+                if (!target.classList.contains('point-btn')) return;
+
+                const index = target.dataset.index;
+                const input = document.getElementById(`points-${index}`);
+                let currentValue = parseInt(input.value);
+
+                if (target.classList.contains('plus')) {
+                    if (currentValue < 100) currentValue++; // Still allow going over, validation handles it
+                } else if (target.classList.contains('minus')) {
+                    if (currentValue > 0) currentValue--;
+                }
+
+                input.value = currentValue;
+                updatePointTotal();
+            });
+
+            // Weighting swiper navigation
+            document.getElementById('weighting-next').addEventListener('click', () => {
+                if (currentWeightingPage < totalWeightingPages - 1) {
+                    currentWeightingPage++;
+                    updateWeightingSlide();
+                }
+            });
+            document.getElementById('weighting-prev').addEventListener('click', () => {
+                if (currentWeightingPage > 0) {
+                    currentWeightingPage--;
+                    updateWeightingSlide();
+                }
+            });
+
+            // Submit button
+            document.getElementById('submit-quiz-btn').addEventListener('click', calculateResults);
+        }
+
+        /**
+         * Calculates the final results and displays them.
+         */
+        function calculateResults() {
+            const results = {};
+            const errorMsg = document.getElementById('error-message');
+            errorMsg.style.display = 'none';
+
+            for (const candidate in CANDIDATE_SCORES) {
+                results[candidate] = 0;
+            }
+
+            let totalPerfectScore = 0;
+            let currentTotalPoints = 0;
+
+            for (let i = 0; i < QUESTIONS.length; i++) {
+                const userScore = userAgreementAnswers[i];
+                const userPointsStr = document.getElementById(`points-${i}`).value;
+
+                const userPoints = parseInt(userPointsStr) || 0;
+
+                currentTotalPoints += userPoints;
+                totalPerfectScore += (5 * userPoints);
+
+                for (const candidate in CANDIDATE_SCORES) {
+                    const candidateScore = CANDIDATE_SCORES[candidate][i];
+                    const agreementScore = calculateAgreement(userScore, candidateScore, userPoints);
+                    results[candidate] += agreementScore;
+                }
+            }
+
+            if (currentTotalPoints !== 60) { // CHANGED
+                 errorMsg.textContent = `Your total points must be exactly 60. Please adjust.`; // CHANGED
+                 errorMsg.style.display = 'block';
+                 errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center'});
+                 return;
+            }
+
+            const finalResults = [];
+            for (const candidate in results) {
+                const score = results[candidate];
+                const percentage = (totalPerfectScore === 0) ? 0 : (score / totalPerfectScore) * 100;
+                finalResults.push({
+                    name: candidate.replace(/ \(.*\)/, ''),
+                    party: candidate.match(/\(([^)]+)\)/)[1],
+                    percentage: parseFloat(percentage.toFixed(1))
+                });
+            }
+
+            finalResults.sort((a, b) => b.percentage - a.percentage);
+
+            // Final step
+            currentStep++; // Now step 18
+            updateProgressBar(currentStep); // Progress to 100%
+            renderResults(finalResults);
+        }
+
+        /**
+         * Renders the final results as percentage bars.
+         */
+        function renderResults(results) {
+            const outputDiv = document.getElementById('results-output');
+            outputDiv.innerHTML = '';
+            const existingRestartBtn = document.getElementById('restart-btn');
+            if (existingRestartBtn) existingRestartBtn.remove();
+
+
+            let html = '';
+
+            // --- Get top match and color ---
+            const topMatch = results[0];
+            const topColor = PARTY_COLORS[topMatch.party] || 'var(--color-accent)'; // Fallback
+
+            // --- CHANGED: Update title dynamically with party name ---
+            const resultsTitle = document.getElementById('results-title');
+            if (resultsTitle && topMatch) {
+                // Set innerHTML to allow for a styled span
+                resultsTitle.innerHTML = `You are closest to <span style="color: ${topColor};">${topMatch.party}</span>`;
+            }
+
+
+            results.forEach((r, index) => {
+                const topMatchClass = (index === 0) ? 'top-match' : '';
+                
+                // --- CHANGED: Get color for *every* bar ---
+                const barColor = PARTY_COLORS[r.party] || 'var(--color-text-light)'; // Fallback
+                
+                // --- CHANGED: Add inline styles for colors for *every* bar ---
+                let barFillStyle = `style="width: 0%; background-color: ${barColor};"`;
+                let textStyle = `style="color: ${barColor};"`;
+
+
+                html += `
+                    <div class="result-bar ${topMatchClass}">
+                        <div class="result-bar-info">
+                            <span class="candidate-name" ${textStyle}>${r.name} (${r.party})</span>
+                            <span class="result-percent" ${textStyle}>${r.percentage}%</span>
+                        </div>
+                        <div class="bar-wrapper">
+                            <div class="bar-fill" ${barFillStyle} data-width="${r.percentage}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            outputDiv.innerHTML = html;
+
+            const restartBtn = document.createElement('button');
+            restartBtn.id = 'restart-btn';
+            
+            // --- CHANGED: Remove button classes and change text ---
+            restartBtn.className = ''; // No classes
+            restartBtn.textContent = 'Click back to start';
+            
+            restartBtn.onclick = () => location.reload();
+            // Append restart button *after* the results list
+            outputDiv.parentElement.appendChild(restartBtn);
+
+            showCard('results-card');
+
+            setTimeout(() => {
+                document.querySelectorAll('.bar-fill').forEach(bar => {
+                    bar.style.width = bar.getAttribute('data-width') + '%';
+                });
+            }, 100);
+        }
+
+
+        // --- Event Listeners and Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuestionCards();
+            renderWeightingCard();
+            attachListeners();
+            updateProgressBar(currentStep, totalSteps); // Set initial progress to 0
+        });
+    </script>
+</body>
+</html>
