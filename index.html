@@ -690,7 +690,7 @@
             margin: 0;
             -webkit-appearance: none;
             -moz-appearance: textfield;
-            pointer-events: none; /* Make readonly visually */
+            /* REMOVED: pointer-events: none; */
         }
         /* --- End New Allocator Styles --- */
 
@@ -1209,7 +1209,8 @@
                             <input type="range" class="point-slider" id="slider-${questionIndex}" 
                                    data-index="${questionIndex}" min="0" max="60" value="4" step="1"
                                    aria-label="Set importance for ${questionShortText}">
-                            <input type="text" class="point-input" id="points-${questionIndex}" value="4" readonly>
+                            <input type="number" class="point-input" id="points-${questionIndex}" 
+                                   data-index="${questionIndex}" min="0" max="60" value="4">
                         </div>
                     </div>
                 `;
@@ -1340,19 +1341,60 @@
                 }
             });
 
-            // --- NEW: Weighting card slider listener ---
-            // The container is now .weighting-list-container
-            // We listen on the weighting-card itself to catch events bubbling up
+            // --- UPDATED: Weighting card listener for 2-way binding ---
+            // Listen on the weighting-card itself to catch events bubbling up
             document.getElementById('weighting-card').addEventListener('input', (event) => {
                 const target = event.target;
+
                 if (target.classList.contains('point-slider')) {
+                    // --- SLIDER changes TEXTBOX ---
                     const index = target.dataset.index;
                     const value = target.value;
-                    
-                    // Update the number display
                     document.getElementById(`points-${index}`).value = value;
+                    updatePointTotal();
+
+                } else if (target.classList.contains('point-input')) {
+                    // --- TEXTBOX changes SLIDER ---
+                    const index = target.dataset.index;
+                    let value = parseInt(target.value, 10);
+
+                    // Clamp value for slider
+                    if (isNaN(value)) {
+                        value = 0;
+                    }
+                    if (value < 0) {
+                        value = 0;
+                    }
+                    if (value > 60) {
+                        value = 60;
+                    }
+                    
+                    // Update the slider's position
+                    document.getElementById(`slider-${index}`).value = value;
                     
                     // Recalculate the total
+                    updatePointTotal();
+                }
+            });
+
+            // --- NEW: Add a 'change' listener for validation ---
+            // This catches when user types "5" and clicks away, or types an invalid number
+            document.getElementById('weighting-card').addEventListener('change', (event) => {
+                const target = event.target;
+                if (target.classList.contains('point-input')) {
+                    let value = parseInt(target.value, 10);
+
+                    if (isNaN(value) || value < 0) {
+                        target.value = 0;
+                    }
+                    if (value > 60) {
+                        target.value = 60;
+                    }
+                    
+                    // Sync slider just in case
+                    document.getElementById(`slider-${target.dataset.index}`).value = target.value;
+                    
+                    // Final total update
                     updatePointTotal();
                 }
             });
