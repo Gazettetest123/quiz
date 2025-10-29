@@ -134,9 +134,20 @@
         }
 
 
-        /* Card Visibility */
-        .quiz-card { display: none; }
-        .quiz-card.active { display: block; }
+        /* --- NEW: Card Visibility & Transition --- */
+        .quiz-card {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.25s ease-in-out;
+        }
+        .quiz-card.active {
+            display: block;
+            /* Opacity is controlled by .is-visible */
+        }
+        .quiz-card.is-visible {
+            opacity: 1;
+        }
+
 
         /* --- Start Card --- */
         .start-card-header {
@@ -595,37 +606,28 @@
             line-height: 1.5;
         }
 
-        /* --- Weighting Swiper (Request 3) --- */
-        .weighting-swiper-container {
+        /* --- NEW: Weighting List (Replaces Swiper) --- */
+        #weighting-list-container {
             flex-grow: 1; /* Takes up remaining space */
             min-height: 0; /* Critical for flex */
             border: 1px solid var(--color-border);
             border-radius: 4px;
-            overflow: hidden; /* This hides the other slides */
-            position: relative;
-        }
-
-        /* This is the track that moves */
-        #weighting-list {
-            display: flex;
-            transition: transform 0.4s ease;
-            height: 100%;
-        }
-
-        .weighting-slide {
-            width: 100%;
-            flex-shrink: 0;
-            overflow-y: auto; /* Allow individual slides to scroll if content overflows */
-            height: 100%;
+            overflow-y: auto; /* Allow the whole list to scroll */
+            
             /* Scrollbar styling */
             scrollbar-width: thin;
             scrollbar-color: var(--color-border) transparent;
         }
-        .weighting-slide::-webkit-scrollbar { width: 8px; }
-        .weighting-slide::-webkit-scrollbar-track { background: transparent; }
-        .weighting-slide::-webkit-scrollbar-thumb {
+        #weighting-list-container::-webkit-scrollbar { width: 8px; }
+        #weighting-list-container::-webkit-scrollbar-track { background: transparent; }
+        #weighting-list-container::-webkit-scrollbar-thumb {
             background-color: var(--color-border);
             border-radius: 4px;
+         }
+
+        /* Hide old swiper nav */
+        .weighting-nav {
+            display: none;
         }
 
         .weighting-list-item {
@@ -635,25 +637,11 @@
             padding: 0.8rem 1rem;
             border-bottom: 1px solid var(--color-border-light);
         }
-        /* Remove border from last item *within a slide* */
-        .weighting-slide .weighting-list-item:last-child {
+        .weighting-list-item:last-child {
             border-bottom: none;
         }
+        /* --- End New List Styles --- */
 
-        /* Swiper Navigation */
-        .weighting-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 1rem 0;
-            flex-shrink: 0;
-        }
-        #weighting-page-indicator {
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--color-text-light);
-        }
-        /* --- End Swiper Styles --- */
 
         .weighting-q-text {
             font-weight: 500;
@@ -667,50 +655,38 @@
             color: var(--color-text);
         }
 
-        /* Point Allocator (+/- buttons) */
+        /* --- NEW: Point Allocator (Slider) --- */
         .point-allocator {
             display: flex;
             align-items: center;
             flex-shrink: 0;
         }
-
-        .point-btn {
-            width: 30px;
-            height: 30px;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--color-accent);
-            background: var(--color-bg);
-            border: 2px solid var(--color-border);
-            border-radius: 50%;
+        
+        .point-slider {
+            width: 100px; /* Give it a decent width */
+            margin-right: 0.75rem;
             cursor: pointer;
-            line-height: 0;
-            padding: 0;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-        .point-btn:hover {
-            background: var(--color-accent);
-            color: var(--color-bg);
-            border-color: var(--color-accent);
-        }
+
+        .point-btn { display: none; } /* Hide old buttons */
 
         .point-input {
-            width: 45px;
-            height: 40px;
+            width: 40px; 
+            height: 35px;
             font-size: 1rem;
             font-weight: 700;
             text-align: center;
-            border: none;
-            background: transparent;
+            border: 1px solid var(--color-border); /* Add border */
+            border-radius: 4px;
+            background: var(--color-bg-light); /* Add background */
             color: var(--color-text);
-            margin: 0 0.2rem;
+            margin: 0;
             -webkit-appearance: none;
             -moz-appearance: textfield;
             pointer-events: none; /* Make readonly visually */
         }
+        /* --- End New Allocator Styles --- */
+
 
         #submit-quiz-btn {
             width: 100%;
@@ -1050,11 +1026,6 @@
         const totalSteps = 2 + totalQuizQuestions + 2;
         let userAgreementAnswers = new Array(QUESTIONS.length).fill(null); // Stores -2 to 2
 
-        // State for weighting swiper
-        let currentWeightingPage = 0;
-        const questionsPerSlide = 3; // CHANGED to 3
-        let totalWeightingPages = Math.ceil(QUESTIONS.length / questionsPerSlide);
-
         // --- Helper Functions ---
 
         /**
@@ -1097,15 +1068,40 @@
         }
 
         /**
-         * Shows a specific card by its ID and hides all others
+         * --- NEW: Shows a card with a fade transition ---
          */
          function showCard(cardId) {
-             document.querySelectorAll('.quiz-card').forEach(card => {
-                 card.classList.remove('active');
-             });
-             document.getElementById(cardId).classList.add('active');
-             window.scrollTo(0, 0); // Scroll to top on every card change
+             const currentCard = document.querySelector('.quiz-card.active');
+             const nextCard = document.getElementById(cardId);
+             
+             const transitionDuration = 250; // 250ms
+
+             if (currentCard && currentCard !== nextCard) {
+                 // 1. Start fading out current card
+                 currentCard.classList.remove('is-visible'); // This triggers opacity: 0
+                 
+                 setTimeout(() => {
+                     // 2. After fade-out, hide it (display: none)
+                     currentCard.classList.remove('active');
+
+                     // 3. Show the next one (display: block)
+                     nextCard.classList.add('active');
+                     
+                     // 4. Force a reflow/delay, then fade it in
+                     setTimeout(() => {
+                         nextCard.classList.add('is-visible'); // This triggers opacity: 1
+                     }, 20); // Short delay to ensure 'active' is applied first
+
+                     window.scrollTo(0, 0);
+                 }, transitionDuration);
+             } else if (nextCard) {
+                 // First card load
+                 nextCard.classList.add('active');
+                 nextCard.classList.add('is-visible');
+                 window.scrollTo(0, 0);
+             }
          }
+
 
         /**
          * Updates the fixed progress bar
@@ -1177,70 +1173,67 @@
         }
 
         /**
-         * Renders the weighting card slides
+         * --- NEW: Renders the weighting card as a single scrollable list ---
          */
         function renderWeightingCard() {
-            const listContainer = document.getElementById('weighting-list');
-            listContainer.innerHTML = ''; // Clear existing
+            // Find the old swiper container to replace it
+            const swiperContainer = document.querySelector('.weighting-swiper-container');
+            
+            // Create the new list container
+            const listContainer = document.createElement('div');
+            listContainer.id = 'weightING-list-container'; // Changed ID to avoid potential future conflicts
+            
+            let html = '';
 
-            // Create slides
-            for (let i = 0; i < totalWeightingPages; i++) {
-                const slide = document.createElement('div');
-                slide.className = 'weighting-slide';
+            QUESTIONS.forEach((q, questionIndex) => {
+                // Improved logic to extract the short, bolded part of the question text
+                let questionShortText = q.text.replace(/<[^>]*>?/gm, ''); // Remove all HTML tags first
+                const strongMatch = q.text.match(/<strong>(.*?)<\/strong>/); // Find content in <strong></strong>
+                if (strongMatch && strongMatch[1]) {
+                    questionShortText = strongMatch[1];
+                } else if (questionShortText.length > 50) {
+                    questionShortText = questionShortText.substring(0, 50) + '...';
+                }
 
-                const start = i * questionsPerSlide;
-                const end = start + questionsPerSlide;
-                let slideHtml = '';
-
-                QUESTIONS.slice(start, end).forEach((q, index) => {
-                    const questionIndex = start + index;
-                    // Improved logic to extract the short, bolded part of the question text
-                    let questionShortText = q.text.replace(/<[^>]*>?/gm, ''); // Remove all HTML tags first
-                    const strongMatch = q.text.match(/<strong>(.*?)<\/strong>/); // Find content in <strong></strong>
-                    if (strongMatch && strongMatch[1]) {
-                        questionShortText = strongMatch[1];
-                    } else if (questionShortText.length > 50) {
-                        questionShortText = questionShortText.substring(0, 50) + '...';
-                    }
-
-
-                    slideHtml += `
-                        <div class="weighting-list-item">
-                            <label for="points-${questionIndex}" class="weighting-q-text">
-                                ${q.id}. <strong>${questionShortText}</strong>
-                            </label>
-                            <div class="point-allocator">
-                                <button type="button" class="point-btn minus" data-index="${questionIndex}" aria-label="Decrease points">-</button>
-                                <input type="text" class="point-input" id="points-${questionIndex}" value="4" readonly> <button type="button" class="point-btn plus" data-index="${questionIndex}" aria-label="Increase points">+</button>
-                            </div>
+                html += `
+                    <div class="weighting-list-item">
+                        <label for="slider-${questionIndex}" class="weighting-q-text">
+                            ${q.id}. <strong>${questionShortText}</strong>
+                        </label>
+                        <div class="point-allocator">
+                            <input type="range" class="point-slider" id="slider-${questionIndex}" 
+                                   data-index="${questionIndex}" min="0" max="60" value="4" step="1"
+                                   aria-label="Set importance for ${questionShortText}">
+                            <input type="text" class="point-input" id="points-${questionIndex}" value="4" readonly>
                         </div>
-                    `;
-                });
+                    </div>
+                `;
+            });
 
-                slide.innerHTML = slideHtml;
-                listContainer.appendChild(slide);
+            listContainer.innerHTML = html;
+            // Replace the old swiper container with our new list container
+            swiperContainer.parentNode.replaceChild(listContainer, swiperContainer);
+            
+            // Add the correct CSS class to the new container
+            listContainer.className = 'weighting-list-container'; // Use the CSS class name
+
+            // Hide the old nav (CSS also does this, but good for JS to be explicit)
+            const weightingNav = document.querySelector('.weighting-nav');
+            if (weightingNav) {
+                weightingNav.style.display = 'none';
             }
-            document.getElementById('weighting-page-indicator').textContent = `1 / ${totalWeightingPages}`;
         }
 
+
         /**
-         * Handles changing the weighting slide
+         * Handles changing the weighting slide (No longer used)
          */
         function updateWeightingSlide() {
-            const track = document.getElementById('weighting-list');
-            const prevBtn = document.getElementById('weighting-prev');
-            const nextBtn = document.getElementById('weighting-next');
-            const indicator = document.getElementById('weighting-page-indicator');
-
-            track.style.transform = `translateX(-${currentWeightingPage * 100}%)`;
-            indicator.textContent = `${currentWeightingPage + 1} / ${totalWeightingPages}`;
-
-            prevBtn.disabled = (currentWeightingPage === 0);
-            nextBtn.disabled = (currentWeightingPage === totalWeightingPages - 1);
+            // This function is no longer needed as the swiper is removed.
         }
 
         /**
-         * Attaches all the necessary event listeners after rendering
+         * --- MODIFIED: Attaches all the necessary event listeners ---
          */
         function attachListeners() {
             // Start button
@@ -1276,11 +1269,9 @@
                     // If it's 'null', this is the first time.
                     if (userAgreementAnswers[index] === null) {
                         // This is the auto-advance.
-                        // We add a short delay (150ms) so the user sees their
-                        // selection register before the page transitions.
-                        setTimeout(() => {
-                            nextBtn.click();
-                        }, 150);
+                        // --- REMOVED 150ms DELAY ---
+                        // The transition in showCard() handles the perceived pause.
+                        nextBtn.click();
                     }
                     // If userAgreementAnswers[index] is NOT null, it means
                     // the user has gone back. We just enable the button
@@ -1347,38 +1338,25 @@
                 }
             });
 
-            // Weighting card +/- button listener
-            document.getElementById('weighting-list').addEventListener('click', (event) => {
+            // --- NEW: Weighting card slider listener ---
+            // The container is now .weighting-list-container
+            // We listen on the weighting-card itself to catch events bubbling up
+            document.getElementById('weighting-card').addEventListener('input', (event) => {
                 const target = event.target;
-                if (!target.classList.contains('point-btn')) return;
-
-                const index = target.dataset.index;
-                const input = document.getElementById(`points-${index}`);
-                let currentValue = parseInt(input.value);
-
-                if (target.classList.contains('plus')) {
-                    if (currentValue < 100) currentValue++; // Still allow going over, validation handles it
-                } else if (target.classList.contains('minus')) {
-                    if (currentValue > 0) currentValue--;
-                }
-
-                input.value = currentValue;
-                updatePointTotal();
-            });
-
-            // Weighting swiper navigation
-            document.getElementById('weighting-next').addEventListener('click', () => {
-                if (currentWeightingPage < totalWeightingPages - 1) {
-                    currentWeightingPage++;
-                    updateWeightingSlide();
+                if (target.classList.contains('point-slider')) {
+                    const index = target.dataset.index;
+                    const value = target.value;
+                    
+                    // Update the number display
+                    document.getElementById(`points-${index}`).value = value;
+                    
+                    // Recalculate the total
+                    updatePointTotal();
                 }
             });
-            document.getElementById('weighting-prev').addEventListener('click', () => {
-                if (currentWeightingPage > 0) {
-                    currentWeightingPage--;
-                    updateWeightingSlide();
-                }
-            });
+
+
+            // --- REMOVED: Weighting swiper navigation listeners ---
 
             // Submit button
             document.getElementById('submit-quiz-btn').addEventListener('click', calculateResults);
@@ -1532,6 +1510,9 @@
             renderWeightingCard();
             attachListeners();
             updateProgressBar(currentStep, totalSteps); // Set initial progress to 0
+            
+            // --- NEW: Make the first card visible ---
+            document.getElementById('start-card').classList.add('is-visible');
         });
     </script>
 </body>
