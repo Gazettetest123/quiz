@@ -1167,7 +1167,7 @@
                             ${detailsHtml}
                             <div class="navigation-buttons">
                                 <button type="button" class="nav-btn secondary" id="prev-btn-${index}">Previous</button>
-                                <button type="button" class="nav-btn" id="next-btn-${index}" disabled>Next</button>
+                                <button type="button" class="nav-btn" id="next-btn-${index}" disabled style="display: none;">Next</button>
                             </div>
                         </div>
                     </div>
@@ -1267,8 +1267,10 @@
                     prevBtn.style.visibility = 'hidden';
                 }
 
+                // *** MODIFICATION 2: Added nextBtn.click() to auto-advance ***
                 document.getElementById(`radio-group-${index}`).addEventListener('change', (e) => {
-                    nextBtn.disabled = false;
+                    nextBtn.disabled = false; // Still good to do this
+                    nextBtn.click(); // Programmatically click the (hidden) next button
                 });
 
                 nextBtn.addEventListener('click', () => {
