@@ -123,8 +123,8 @@
             }
 
             .accordion-container {
-                margin-top: 0.75rem; /* <-- CHANGED: Less margin */
-                padding-top: 0.75rem; /* <-- CHANGED: Less padding */
+                margin-top: 0.2rem; /* <-- CHANGED: Less margin */
+                padding-top: 0.2rem; /* <-- CHANGED: Less padding */
             }
             
             .navigation-buttons {
@@ -829,7 +829,7 @@
                         <span class="stack-icon icon-weight">⚖</span>
                         <span class="stack-icon icon-match">🎯</span>
                     </div>
-                    <h1>The Montreal election quiz</h1>
+                    <h1>Where do you stand, Montreal?</h1>
                 </div>
 
                 <p class="tagline">
@@ -1167,7 +1167,7 @@
                             ${detailsHtml}
                             <div class="navigation-buttons">
                                 <button type="button" class="nav-btn secondary" id="prev-btn-${index}">Previous</button>
-                                <button type="button" class="nav-btn" id="next-btn-${index}" disabled style="display: none;">Next</button>
+                                <button type="button" class="nav-btn" id="next-btn-${index}" disabled>Next</button>
                             </div>
                         </div>
                     </div>
@@ -1267,16 +1267,32 @@
                     prevBtn.style.visibility = 'hidden';
                 }
 
-                // *** MODIFICATION 2: Added nextBtn.click() to auto-advance ***
+                // *** MODIFICATION 2: Updated 'change' listener for hybrid navigation ***
                 document.getElementById(`radio-group-${index}`).addEventListener('change', (e) => {
-                    nextBtn.disabled = false; // Still good to do this
-                    nextBtn.click(); // Programmatically click the (hidden) next button
+                    // Always enable the Next button when an option is selected
+                    nextBtn.disabled = false;
+                    
+                    // Check if the question has been answered before.
+                    // If it's 'null', this is the first time.
+                    if (userAgreementAnswers[index] === null) {
+                        // This is the auto-advance.
+                        // We add a short delay (150ms) so the user sees their
+                        // selection register before the page transitions.
+                        setTimeout(() => {
+                            nextBtn.click();
+                        }, 150);
+                    }
+                    // If userAgreementAnswers[index] is NOT null, it means
+                    // the user has gone back. We just enable the button
+                    // and do NOT auto-advance, forcing a manual click.
                 });
 
                 nextBtn.addEventListener('click', () => {
                     const selected = document.querySelector(`input[name="agreement-${q.id}"]:checked`);
                     if (!selected) { return; }
 
+                    // Save the answer *now*. This is what makes the
+                    // "go back" logic work.
                     userAgreementAnswers[index] = parseInt(selected.value);
 
                     currentStep++;
@@ -1287,15 +1303,18 @@
 
                         document.getElementById(`prev-btn-${nextQuestionIndex}`).style.visibility = 'visible';
 
+                        // Check if the *next* question has a pre-saved answer
                         if (userAgreementAnswers[nextQuestionIndex] !== null) {
                             const val = userAgreementAnswers[nextQuestionIndex];
                             document.querySelector(`#question-card-${nextQuestionIndex} input[value="${val}"]`).checked = true;
                             document.getElementById(`next-btn-${nextQuestionIndex}`).disabled = false;
                         } else {
+                             // If no saved answer, the 'Next' button should be disabled
                              document.getElementById(`next-btn-${nextQuestionIndex}`).disabled = true;
                         }
 
                     } else {
+                        // Moving to the weighting card
                         showCard('weighting-card');
                         updateProgressBar(currentStep);
                         updatePointTotal();
@@ -1313,6 +1332,8 @@
                             showCard(`question-card-${prevQuestionIndex}`);
                             updateProgressBar(currentStep);
 
+                            // When going back, the answer is already saved,
+                            // so we just re-check the button and enable 'Next'.
                             const val = userAgreementAnswers[prevQuestionIndex];
                             if (val !== null) {
                                 document.querySelector(`#question-card-${prevQuestionIndex} input[value="${val}"]`).checked = true;
@@ -1381,6 +1402,13 @@
             for (let i = 0; i < QUESTIONS.length; i++) {
                 const userScore = userAgreementAnswers[i];
                 const userPointsStr = document.getElementById(`points-${i}`).value;
+
+                // Handle check for unanswered questions (shouldn't happen, but good defense)
+                if (userScore === null) {
+                    console.error(`Question ${i+1} was not answered.`);
+                    // Or show an error to the user
+                    return; 
+                }
 
                 const userPoints = parseInt(userPointsStr) || 0;
 
