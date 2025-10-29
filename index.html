@@ -1051,11 +1051,11 @@
 
         /**
          * Calculates the agreement score for one question.
-         * The formula is: (5 - |User Score - Candidate Score|) * Importance Multiplier
+         * The formula is: (4 - |User Score - Candidate Score|) * Importance Multiplier. 
          */
         function calculateAgreement(userScore, candidateScore, points) {
             const scoreDifference = Math.abs(userScore - candidateScore);
-            const rawAgreement = 5 - scoreDifference;
+            const rawAgreement = 4 - scoreDifference;
             return rawAgreement * points;
         }
 
@@ -1366,7 +1366,7 @@
                 const userPoints = parseInt(userPointsStr) || 0;
 
                 currentTotalPoints += userPoints;
-                totalPerfectScore += (5 * userPoints);
+                totalPerfectScore += (4 * userPoints);
 
                 for (const candidate in CANDIDATE_SCORES) {
                     const candidateScore = CANDIDATE_SCORES[candidate][i];
